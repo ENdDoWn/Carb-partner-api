@@ -57,31 +57,3 @@ async def login_with_google(
     access_token = auth_service.create_access_token(data={"sub": str(user["_id"])})
     
     return {"access_token": access_token, "token_type": "bearer", "user_id": str(user["_id"])}
-
-
-@router.post("/facebook/login")
-async def login_with_facebook(
-    access_token: str,
-    oauth_service: OAuthService = Depends(get_oauth_service)
-):
-    # รับ access_token จาก React (Facebook Login)
-    fb_id, name, picture = await oauth_service.verify_facebook_token(access_token)
-    
-    repo = AuthRepository()
-    user = await repo.find_by_facebook_id(fb_id)
-
-    if not user:
-        social_data = {
-            "name": name,
-            "facebook": {
-                "id": fb_id,
-                "name": name,
-                "picture": picture
-            }
-        }
-        user = await repo.create_social_user(provider="facebook", profile_data=social_data)
-
-    auth_service = AuthService()
-    access_token = auth_service.create_access_token(data={"sub": str(user["_id"])})
-    
-    return {"access_token": access_token, "token_type": "bearer", "user_id": str(user["_id"])}

@@ -60,22 +60,5 @@ class OAuthService:
             data = response.json()
             return data.get("sub"), data.get("name"), data.get("picture"), data.get("email")
 
-    @staticmethod
-    async def verify_facebook_token(access_token: str):
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                "https://graph.facebook.com/me",
-                params={
-                    "access_token": access_token,
-                    "fields": "id,name,email,picture.type(large)"
-                }
-            )
-            if response.status_code != 200:
-                raise HTTPException(status_code=400, detail="Facebook token verification failed")
-            
-            data = response.json()
-            picture = data.get("picture", {}).get("data", {}).get("url")
-            return data.get("id"), data.get("name"), picture
-
 def get_oauth_service() -> OAuthService:
     return OAuthService()
