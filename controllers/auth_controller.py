@@ -34,3 +34,13 @@ async def signin(login_data: UserLogin, service: AuthService = Depends(get_auth_
         "token_type": "bearer",
         "user": user.get("user")
     }
+
+@router.post("/user/me")
+async def get_current_user(service: AuthService = Depends(get_auth_service)):
+    user = await service.get_current_user()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+        )
+    return {"user": user}
