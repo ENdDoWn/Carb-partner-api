@@ -18,7 +18,7 @@ app = FastAPI(lifespan=lifespan)
 
 origins = [
     "http://localhost:3031",
-    "https://carb-partner.proserver.io:8080/",
+    "https://carb-partner.proserver.io:8080",
 ]
 
 app.add_middleware(
