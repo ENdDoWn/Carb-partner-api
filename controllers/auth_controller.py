@@ -29,10 +29,8 @@ async def signin(login_data: UserLogin, service: AuthService = Depends(get_auth_
             detail="Incorrect email or password",
         )
     return {
-        "message": "Login successful",
         "access_token": user.get("access_token"),
         "token_type": "bearer",
-        "user": user.get("user")
     }
 
 @router.post("/user/me")

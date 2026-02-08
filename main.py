@@ -1,4 +1,4 @@
-from controllers import auth_controller, user_controller, oauth_controller
+from controllers import auth_controller, user_controller, oauth_controller, health_controller
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
@@ -41,6 +41,7 @@ async def validation_exception_handler(request, exc):
 app.include_router(auth_controller.router, prefix="/api/v1", tags=["auth"])
 app.include_router(oauth_controller.router, prefix="/api/v1", tags=["oauth"])
 app.include_router(user_controller.router, prefix="/api/v1", tags=["users"])
+app.include_router(health_controller.router, prefix="/api/v1", tags=["health"])
 
 @app.get("/health")
 async def health_check():
