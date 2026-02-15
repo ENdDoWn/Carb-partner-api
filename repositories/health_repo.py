@@ -17,3 +17,19 @@ class HealthRepository:
         carb_data["user_id"] = user_id
         result = await self.carb.insert_one(carb_data)
         return result.inserted_id
+
+    async def find_blood_sugar_report(self, user_id: str) -> list:
+        cursor = self.blood.find({"user_id": user_id}).sort("created_at", -1)
+        report = []
+        async for document in cursor:
+            document["_id"] = str(document["_id"])
+            report.append(document)
+        return report
+
+    async def find_carb_report(self, user_id: str) -> list:
+        cursor = self.carb.find({"user_id": user_id}).sort("created_at", -1)
+        report = []
+        async for document in cursor:
+            document["_id"] = str(document["_id"])
+            report.append(document)
+        return report

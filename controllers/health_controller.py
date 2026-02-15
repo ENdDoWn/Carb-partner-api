@@ -28,3 +28,17 @@ async def add_carbs(
     current_user: dict = Depends(AuthService.get_current_user)
 ):
     return await health_service.add_carbs(carb_info_request.model_dump(), current_user["id"])
+
+@router.get("/blood_sugar_report")
+async def blood_sugar_report(
+    health_service: HealthService = Depends(HealthService),
+    current_user: dict = Depends(AuthService.get_current_user)
+):
+    return await health_service.get_blood_sugar_report(current_user["id"])
+
+@router.get("/carb_report")
+async def carb_report(
+    health_service: HealthService = Depends(HealthService),
+    current_user: dict = Depends(AuthService.get_current_user)
+):
+    return await health_service.get_carb_report(current_user["id"])

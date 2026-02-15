@@ -16,3 +16,15 @@ class HealthService:
         if not result:
             return {"error": "Failed to add carb data"}
         return "OK"
+
+    async def get_blood_sugar_report(self, user_id: str):
+        report = await self.health_repo.find_blood_sugar_report(user_id)
+        if not report:
+            return {"error": "This user has no blood sugar data"}
+        return report
+
+    async def get_carb_report(self, user_id: str):
+        report = await self.health_repo.find_carb_report(user_id)
+        if not report:
+            return {"error": "This user has no carb data"}
+        return report
