@@ -9,8 +9,8 @@ class UserService:
     async def add_additional_info(self, user_id: str, info_data: dict) -> dict:
         payload = dict(info_data or {})
         try:
-            height = float(payload.get("height", 0) or 0)
-            weight = float(payload.get("weight", 0) or 0)
+            height = float(payload.get("height"))
+            weight = float(payload.get("weight"))
             if height > 0 and weight > 0:
                 height_m = height / 100.0
                 bmi = weight / (height_m * height_m)
