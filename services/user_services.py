@@ -15,8 +15,6 @@ class UserService:
             day = int(day_str)
             month = int(month_str)
             year = int(year_str)
-            if year >= 2400:
-                year -= 543
             birth_dt = date(year, month, day)
             today = date.today()
             age = today.year - birth_dt.year - ((today.month, today.day) < (birth_dt.month, birth_dt.day))
