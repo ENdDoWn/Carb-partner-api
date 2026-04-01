@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     LINE_CHANNEL_ID: str
     LINE_CHANNEL_SECRET: str
     LINE_REDIRECT_URI: str
+    GEMINI_API_KEY: str
     model_config = SettingsConfigDict(env_file=".env")
 
 settings = Settings()

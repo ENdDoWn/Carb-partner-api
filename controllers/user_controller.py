@@ -8,8 +8,18 @@ router = APIRouter()
 
 @router.get("/users/me/")
 async def read_users_me(user: dict = Depends(AuthService.get_current_user)):
-    return {"user": user}
-
+    try:
+        return {"user": user}
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error"
+        )
 
 class UserInfoRequest(BaseModel):
     sex: str
@@ -38,15 +48,17 @@ async def add_user_info(
         payload = info_body.model_dump()
         result = await UserService().add_additional_info(current_user["id"], payload)
         if not result:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Failed to add user info",
-            )
+            raise ValueError("Failed to add user info")
         return "OK"
-    except Exception as e:
-        return HTTPException(
+    except ValueError as e:
+        raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
         )
 
 @router.post("/users/update_profile/")
@@ -63,13 +75,16 @@ async def update_profile(
         update_data = {**extra, **update_data}
         result = await user_service.update_profile(update_data, current_user["id"])
         if not result:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Failed to update user profile",
-            )
+            raise ValueError("Failed to update user profile")
         return "OK"
-    except Exception as e:
-        return HTTPException(
+    except ValueError as e:
+        raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
+        )
+

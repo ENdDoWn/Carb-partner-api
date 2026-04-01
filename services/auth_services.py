@@ -22,12 +22,12 @@ class AuthService:
     async def register_user(self, user_data: dict) -> dict:
         existing_user = await self.repository.find_by_email(user_data["email"])
         if existing_user:
-            raise Exception("Email already registered")
+            raise ValueError("Email already registered")
 
         password = str(user_data.get("password", "")).strip()
         confirm_password = str(user_data.get("confirm_password", "")).strip()
         if password != confirm_password:
-            raise Exception("Passwords do not match")
+            raise ValueError("Passwords do not match")
 
         hashed_password = self.crypt_context.hash(password)
         insert_query = {

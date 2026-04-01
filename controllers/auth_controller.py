@@ -17,28 +17,62 @@ class UserLogin(BaseModel):
 async def signup(user: UserRegister, service: AuthService = Depends(get_auth_service)):
     try:
         return await service.register_user(user.model_dump())
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error"
+        )
 
 @router.post("/signin")
 async def signin(login_data: UserLogin, service: AuthService = Depends(get_auth_service)):
-    user = await service.authenticate_user(login_data.model_dump())
-    if not user:
+    try:
+        user = await service.authenticate_user(login_data.model_dump())
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password",
+            )
+        return {
+            "access_token": user.get("access_token"),
+            "token_type": "bearer",
+        }
+    except HTTPException as e:
+        raise e
+    except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
         )
-    return {
-        "access_token": user.get("access_token"),
-        "token_type": "bearer",
-    }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error"
+        )
 
 @router.post("/user/me")
 async def get_current_user(service: AuthService = Depends(get_auth_service)):
-    user = await service.get_current_user()
-    if not user:
+    try:
+        user = await service.get_current_user()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Not authenticated",
+            )
+        return {"user": user}
+    except HTTPException as e:
+        raise e
+    except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
         )
-    return {"user": user}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error"
+        )

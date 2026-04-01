@@ -39,7 +39,7 @@ class UserService:
         payload["has_profile"] = True
         updated_user = await self.repository.update_additional_info(user_id, payload)
         if not updated_user:
-            raise Exception("Failed to update user info")
+            raise ValueError("Failed to update user info")
         return updated_user
 
     async def update_profile(self, data_profile: dict, user_id: str) -> dict:
@@ -50,5 +50,5 @@ class UserService:
                 payload["age"] = age
         updated_user = await self.repository.update_profile(user_id, data_profile)
         if not updated_user:
-            raise Exception("Failed to update user profile")
+            raise ValueError("Failed to update user profile")
         return updated_user
