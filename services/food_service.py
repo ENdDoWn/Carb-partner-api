@@ -42,9 +42,10 @@ class FoodService:
             if "```json" in text_response:
                 text_response = text_response.split("```json")[1].split("```")[0].strip()
             elif "```" in text_response:
-                 text_response = text_response.split("```")[1].split("```")[0].strip()
-            
+                text_response = text_response.split("```")[1].split("```")[0].strip()
+
             result = json.loads(text_response)
+            print("AI food analysis result:", result)
             carb_log_data = {
                 "amount": 1, 
                 "food_type": result.get("food_type", "unknown"),
