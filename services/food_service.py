@@ -1,4 +1,5 @@
 import google.generativeai as genai
+from google.api_core.exceptions import ResourceExhausted
 import base64
 import json
 from core.config import settings
@@ -10,6 +11,29 @@ class FoodService:
         genai.configure(api_key=settings.GEMINI_API_KEY)
         self.model = genai.GenerativeModel("gemini-2.5-flash")
         self.health_repo = HealthRepository()
+
+    async def confirm_food_upload(self, result_data: Dict[str, Any], user_id: str) -> Dict[str, Any]:
+        try:
+            carbs_estimate = float(result_data.get("carbs_estimate_g", 0))
+            food_type = result_data.get("food_type", "ไม่ทราบประเภทอาหาร")
+
+            if carbs_estimate == 0 and food_type == "ไม่ทราบประเภทอาหาร":
+                return result_data
+
+            carb_log_data = {
+                "amount": 1,
+                "food_type": food_type,
+                "carb": carbs_estimate,
+            }
+
+            inserted_id = await self.health_repo.insert_carb(carb_log_data, user_id)
+            return {
+                "message": "OK",
+                "inserted_id": str(inserted_id),
+                "result": result_data,
+            }
+        except Exception as e:
+            raise Exception(f"Failed to confirm and save food image result: {str(e)}")
 
     async def analyze_food_image(self, base64_image: str, user_id: str) -> Dict[str, Any]:
         try:
@@ -46,14 +70,9 @@ class FoodService:
 
             result = json.loads(text_response)
             print("AI food analysis result:", result)
-            carb_log_data = {
-                "amount": 1, 
-                "food_type": result.get("food_type", "unknown"),
-                "carb": float(result.get("carbs_estimate_g", 0))
-            }
-            
-            await self.health_repo.insert_carb(carb_log_data, user_id)
-            
             return result
+        except ResourceExhausted as e:
+            print("Gemini rate limit exceeded:", str(e))
+            raise Exception(f"Failed to analyze food image: {str(e)}")
         except Exception as e:
-            raise Exception(f"Failed to analyze and save food image: {str(e)}")
+            raise Exception(f"Failed to analyze food image: {str(e)}")

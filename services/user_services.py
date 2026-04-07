@@ -7,6 +7,34 @@ class UserService:
     def __init__(self):
         self.repository = UserRepository()
 
+    def _calculate_carb_expect(self, sex: str, active: str, weight: float, height: float, age: int) -> float | None:
+        try:
+            sex_normalized = str(sex or "").strip().lower()
+            active_normalized = str(active or "").strip().lower()
+
+            if sex_normalized == "male":
+                bmr = 66 + (13.7 * weight) + (5 * height) - (6.8 * age)
+            elif sex_normalized == "female":
+                bmr = 665 + (9.6 * weight) + (1.8 * height) - (4.7 * age)
+            else:
+                return None
+
+            activity_factor_map = {
+                "low": 1.375,
+                "medium": 1.55,
+                "high": 1.725,
+            }
+            activity_factor = activity_factor_map.get(active_normalized)
+            if activity_factor is None:
+                return None
+
+            tdee = bmr * activity_factor
+            carb_kcal = tdee * 0.20
+            carb_grams = carb_kcal / 4
+            return round(carb_grams, 2)
+        except Exception:
+            return None
+
     def _calculate_age_from_birth_date(self, birth_date_str: str) -> int | None:
         if not birth_date_str or not isinstance(birth_date_str, str):
             return None
@@ -34,6 +62,16 @@ class UserService:
                 height_m = height / 100.0
                 bmi = weight / (height_m * height_m)
                 payload["bmi"] = round(bmi, 2)
+
+                carb_expect = self._calculate_carb_expect(
+                    payload.get("sex"),
+                    payload.get("active"),
+                    weight,
+                    height,
+                    age if age is not None else payload.get("age"),
+                )
+                if carb_expect is not None:
+                    payload["carb_expect"] = carb_expect
         except Exception as e:
             print("Error calculating BMI, skipping BMI calculation:", str(e))
         payload["has_profile"] = True
