@@ -50,7 +50,6 @@ class AuthRepository:
         new_user = {
             "full_name": profile_data.get("name"),
             "email": profile_data.get("email"),
-            "gender": None,
             "age": None,
             "weight": None,
             "height": None,

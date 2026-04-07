@@ -1,4 +1,5 @@
 from database.mongodb import mongodb
+from bson import ObjectId
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -6,6 +7,7 @@ class HealthRepository:
     def __init__(self):
         self.blood = mongodb.get_collection("blood-sugar-logs")
         self.carb = mongodb.get_collection("carb-logs")
+        self.user_profile = mongodb.get_collection("user_profile")
 
     async def insert_sugar(self, sugar_data: dict, user_id: str) -> dict:
         sugar_data["created_at"] = datetime.now(ZoneInfo("Asia/Bangkok"))
@@ -34,3 +36,52 @@ class HealthRepository:
             document["_id"] = str(document["_id"])
             report.append(document)
         return report
+
+    async def find_blood_sugar_by_range(self, user_id: str, start_at: datetime, end_at: datetime) -> list:
+        cursor = self.blood.find(
+            {
+                "user_id": user_id,
+                "created_at": {"$gte": start_at, "$lt": end_at},
+            }
+        ).sort("created_at", 1)
+        report = []
+        async for document in cursor:
+            document["_id"] = str(document["_id"])
+            report.append(document)
+        return report
+
+    async def find_carb_by_range(self, user_id: str, start_at: datetime, end_at: datetime) -> list:
+        cursor = self.carb.find(
+            {
+                "user_id": user_id,
+                "created_at": {"$gte": start_at, "$lt": end_at},
+            }
+        ).sort("created_at", 1)
+        report = []
+        async for document in cursor:
+            document["_id"] = str(document["_id"])
+            report.append(document)
+        return report
+
+    async def find_user_carb_goal(self, user_id: str) -> float:
+        try:
+            user = await self.user_profile.find_one({"_id": ObjectId(user_id)})
+        except Exception:
+            return 0.0
+
+        if not user:
+            return 0.0
+
+        if user.get("carbGoal") is not None:
+            try:
+                return float(user.get("carbGoal"))
+            except Exception:
+                return 0.0
+
+        if user.get("carb_expect") is not None:
+            try:
+                return float(user.get("carb_expect"))
+            except Exception:
+                return 0.0
+
+        return 0.0

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
+from datetime import date
 from services.auth_services import AuthService
 from services.health_services import HealthService
 
@@ -82,6 +83,30 @@ async def carb_report(
             detail=str(e)
         )
     except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error"
+        )
+
+@router.get("/stats")
+async def stats_report(
+    period: str = "week",
+    anchor_date: date | None = None,
+    health_service: HealthService = Depends(HealthService),
+    current_user: dict = Depends(AuthService.get_current_user)
+):
+    try:
+        return await health_service.get_stats(
+            user_id=current_user["id"],
+            period=period,
+            anchor_date=anchor_date,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal Server Error"
