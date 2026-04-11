@@ -29,6 +29,21 @@ class HealthService:
         # If report is empty, return empty list instead of error dict for consistency
         return report or []
 
+    async def get_daily_carb_total(self, user_id: str) -> dict:
+        now_bkk = datetime.now(self.tz)
+        today = now_bkk.date()
+        start_at = datetime.combine(today, time.min, tzinfo=self.tz)
+        end_at = start_at + timedelta(days=1)
+
+        carb_logs = await self.health_repo.find_carb_by_range(user_id, start_at, end_at)
+        total_carb = sum(self._safe_number(item.get("carb")) for item in carb_logs)
+
+        return {
+            "date": today.isoformat(),
+            "totalCarb": round(total_carb, 2),
+            "entries": len(carb_logs),
+        }
+
     def _to_bkk_datetime(self, value: date) -> datetime:
         return datetime.combine(value, time.min, tzinfo=self.tz)
 
