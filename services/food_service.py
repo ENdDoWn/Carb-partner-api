@@ -9,7 +9,7 @@ from repositories.health_repo import HealthRepository
 class FoodService:
     def __init__(self):
         genai.configure(api_key=settings.GEMINI_API_KEY)
-        self.model = genai.GenerativeModel("gemini-2.5-flash")
+        self.model = genai.GenerativeModel(settings.GEMINI_MODEL)
         self.health_repo = HealthRepository()
 
     async def confirm_food_upload(self, result_data: Dict[str, Any], user_id: str) -> Dict[str, Any]:
