@@ -106,6 +106,25 @@ async def daily_carb_total(
             detail="Internal Server Error"
         )
 
+@router.get("/daily_totals_by_date")
+async def daily_totals_by_date(
+    selected_date: str,
+    health_service: HealthService = Depends(HealthService),
+    current_user: dict = Depends(AuthService.get_current_user)
+):
+    try:
+        return await health_service.get_daily_totals_by_date(current_user["id"], selected_date)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error"
+        )
+
 @router.get("/stats")
 async def stats_report(
     period: str = "week",

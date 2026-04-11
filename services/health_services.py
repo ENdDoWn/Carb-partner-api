@@ -44,6 +44,29 @@ class HealthService:
             "entries": len(carb_logs),
         }
 
+    async def get_daily_totals_by_date(self, user_id: str, selected_date: str) -> dict:
+        try:
+            target_date = datetime.strptime(selected_date, "%d/%m/%Y").date()
+        except Exception:
+            raise ValueError("Invalid date format. Use dd/mm/yyyy")
+
+        start_at = datetime.combine(target_date, time.min, tzinfo=self.tz)
+        end_at = start_at + timedelta(days=1)
+
+        carb_logs = await self.health_repo.find_carb_by_range(user_id, start_at, end_at)
+        blood_logs = await self.health_repo.find_blood_sugar_by_range(user_id, start_at, end_at)
+
+        total_carb = sum(self._safe_number(item.get("carb")) for item in carb_logs)
+        total_blood_sugar = sum(self._safe_number(item.get("sugar_level")) for item in blood_logs)
+
+        return {
+            "queryDate": selected_date,
+            "totalCarb": round(total_carb, 2),
+            "totalBloodSugar": round(total_blood_sugar, 2),
+            "carbEntries": len(carb_logs),
+            "bloodEntries": len(blood_logs),
+        }
+
     def _to_bkk_datetime(self, value: date) -> datetime:
         return datetime.combine(value, time.min, tzinfo=self.tz)
 
