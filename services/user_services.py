@@ -43,6 +43,11 @@ class UserService:
             day = int(day_str)
             month = int(month_str)
             year = int(year_str)
+
+            # Support Thai Buddhist Era (B.E.) years like 2542 by converting to C.E.
+            if year > 2400:
+                year -= 543
+
             birth_dt = date(year, month, day)
             today = date.today()
             age = today.year - birth_dt.year - ((today.month, today.day) < (birth_dt.month, birth_dt.day))
@@ -86,7 +91,7 @@ class UserService:
             age = self._calculate_age_from_birth_date(payload.get("birth_date"))
             if age is not None:
                 payload["age"] = age
-        updated_user = await self.repository.update_profile(user_id, data_profile)
+        updated_user = await self.repository.update_profile(user_id, payload)
         if not updated_user:
             raise ValueError("Failed to update user profile")
         return updated_user
