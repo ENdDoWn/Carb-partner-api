@@ -1,6 +1,7 @@
 from database.mongodb import mongodb
 from bson import ObjectId
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 class AuthRepository:
     def __init__(self):
@@ -50,10 +51,9 @@ class AuthRepository:
         new_user = {
             "full_name": profile_data.get("name"),
             "email": profile_data.get("email"),
-            "age": None,
             "weight": None,
             "height": None,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(ZoneInfo("Asia/Bangkok")),
             "auth_providers": {
                 "google": {},
                 "line": {},

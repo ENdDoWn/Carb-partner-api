@@ -57,9 +57,6 @@ class UserService:
 
     async def add_additional_info(self, user_id: str, info_data: dict) -> dict:
         payload = dict(info_data or {})
-        age = self._calculate_age_from_birth_date(payload.get("birth_date"))
-        if age is not None:
-            payload["age"] = age
         try:
             height = float(payload.get("height"))
             weight = float(payload.get("weight"))
@@ -73,7 +70,7 @@ class UserService:
                     payload.get("active"),
                     weight,
                     height,
-                    age if age is not None else payload.get("age"),
+                    self._calculate_age_from_birth_date(payload.get("birth_date")) or 0,
                 )
                 if carb_expect is not None:
                     payload["carb_expect"] = carb_expect
@@ -87,10 +84,6 @@ class UserService:
 
     async def update_profile(self, data_profile: dict, user_id: str) -> dict:
         payload = dict(data_profile or {})
-        if "birth_date" in payload:
-            age = self._calculate_age_from_birth_date(payload.get("birth_date"))
-            if age is not None:
-                payload["age"] = age
         updated_user = await self.repository.update_profile(user_id, payload)
         if not updated_user:
             raise ValueError("Failed to update user profile")

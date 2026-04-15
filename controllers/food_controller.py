@@ -11,6 +11,7 @@ class AnalyzeFoodRequest(BaseModel):
 
 class ConfirmFoodUploadRequest(BaseModel):
     result: Dict[str, Any]
+    meal_key: str | None = None
 
 @router.post("/food/analyze/")
 async def analyze_food(
@@ -43,7 +44,11 @@ async def confirm_food_upload(
     food_service: FoodService = Depends(FoodService)
 ):
     try:
-        return await food_service.confirm_food_upload(payload.result, current_user["id"])
+        return await food_service.confirm_food_upload(
+            payload.result,
+            current_user["id"],
+            payload.meal_key,
+        )
     except ValueError as ve:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
