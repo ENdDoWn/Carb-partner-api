@@ -84,6 +84,65 @@ class UserService:
 
     async def update_profile(self, data_profile: dict, user_id: str) -> dict:
         payload = dict(data_profile or {})
+
+        current_profile = await self.repository.get_user_profile(user_id)
+        if current_profile is None:
+            raise ValueError("User profile not found")
+
+        def _as_float(value):
+            try:
+                return float(value)
+            except Exception:
+                return None
+
+        weight_changed = False
+        if "weight" in payload:
+            new_weight = _as_float(payload.get("weight"))
+            old_weight = _as_float(current_profile.get("weight"))
+            if new_weight is None or old_weight is None:
+                weight_changed = payload.get("weight") != current_profile.get("weight")
+            else:
+                weight_changed = new_weight != old_weight
+
+        height_changed = False
+        if "height" in payload:
+            new_height = _as_float(payload.get("height"))
+            old_height = _as_float(current_profile.get("height"))
+            if new_height is None or old_height is None:
+                height_changed = payload.get("height") != current_profile.get("height")
+            else:
+                height_changed = new_height != old_height
+
+        active_changed = False
+        if "active" in payload:
+            new_active = str(payload.get("active") or "").strip().lower()
+            old_active = str(current_profile.get("active") or "").strip().lower()
+            active_changed = new_active != old_active
+
+        should_recalculate = weight_changed or height_changed or active_changed
+
+        if should_recalculate:
+            try:
+                effective_weight = float(payload.get("weight", current_profile.get("weight")))
+                effective_height = float(payload.get("height", current_profile.get("height")))
+                if effective_height > 0 and effective_weight > 0:
+                    height_m = effective_height / 100.0
+                    payload["bmi"] = round(effective_weight / (height_m * height_m), 2)
+
+                    carb_expect = self._calculate_carb_expect(
+                        payload.get("sex", current_profile.get("sex")),
+                        payload.get("active", current_profile.get("active")),
+                        effective_weight,
+                        effective_height,
+                        self._calculate_age_from_birth_date(
+                            payload.get("birth_date", current_profile.get("birth_date"))
+                        ) or 0,
+                    )
+                    if carb_expect is not None:
+                        payload["carb_expect"] = carb_expect
+            except Exception as e:
+                print("Error recalculating BMI/carb_expect, using incoming payload values:", str(e))
+
         updated_user = await self.repository.update_profile(user_id, payload)
         if not updated_user:
             raise ValueError("Failed to update user profile")

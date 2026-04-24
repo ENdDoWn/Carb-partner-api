@@ -5,6 +5,9 @@ class UserRepository:
     def __init__(self):
         self.collection = mongodb.get_collection("user_profile")
 
+    async def get_user_profile(self, user_id: str) -> dict | None:
+        return await self.collection.find_one({"_id": ObjectId(user_id)})
+
     async def update_additional_info(self, user_id: str, info_data: dict) -> dict:
         update_result = await self.collection.update_one(
             {"_id": ObjectId(user_id)},
