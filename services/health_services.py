@@ -45,10 +45,7 @@ class HealthService:
         }
 
     async def get_daily_totals_by_date(self, user_id: str, selected_date: str) -> dict:
-        try:
-            target_date = datetime.strptime(selected_date, "%d/%m/%Y").date()
-        except Exception:
-            raise ValueError("Invalid date format. Use dd/mm/yyyy")
+        target_date = self._parse_selected_date(selected_date)
 
         start_at = datetime.combine(target_date, time.min, tzinfo=self.tz)
         end_at = start_at + timedelta(days=1)
@@ -66,6 +63,22 @@ class HealthService:
             "carbEntries": len(carb_logs),
             "bloodEntries": len(blood_logs),
         }
+
+    def _parse_selected_date(self, selected_date: str) -> date:
+        try:
+            parsed = datetime.strptime(selected_date, "%d/%m/%Y").date()
+        except Exception:
+            raise ValueError("Invalid date format. Use dd/mm/yyyy")
+
+        # Accept Buddhist Era years (e.g. 2569) and convert to Gregorian for DB queries.
+        if parsed.year >= 2400:
+            converted_year = parsed.year - 543
+            try:
+                parsed = parsed.replace(year=converted_year)
+            except ValueError:
+                raise ValueError("Invalid date value after Buddhist year conversion")
+
+        return parsed
 
     def _to_bkk_datetime(self, value: date) -> datetime:
         return datetime.combine(value, time.min, tzinfo=self.tz)
