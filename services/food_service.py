@@ -29,11 +29,12 @@ class FoodService:
         self,
         result_data: Dict[str, Any],
         user_id: str,
+        meal_key: str | None = None,
     ) -> Dict[str, Any]:
         try:
             carbs_estimate = float(result_data.get("carbs_estimate_g", 0))
             food_type = result_data.get("food_type", "ไม่ทราบประเภทอาหาร")
-            resolved_meal_key = self._derive_meal_key_from_time()
+            resolved_meal_key = meal_key or self._derive_meal_key_from_time()
 
             if carbs_estimate == 0 and food_type == "ไม่ทราบประเภทอาหาร":
                 return result_data
