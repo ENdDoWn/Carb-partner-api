@@ -55,6 +55,7 @@ class HealthService:
 
         total_carb = sum(self._safe_number(item.get("carb")) for item in carb_logs)
         total_blood_sugar = sum(self._safe_number(item.get("sugar_level")) for item in blood_logs)
+        carb_entities = [self._strip_internal_fields(item) for item in carb_logs]
 
         return {
             "queryDate": selected_date,
@@ -62,6 +63,7 @@ class HealthService:
             "totalBloodSugar": round(total_blood_sugar, 2),
             "carbEntries": len(carb_logs),
             "bloodEntries": len(blood_logs),
+            "carbLogs": carb_entities,
         }
 
     def _parse_selected_date(self, selected_date: str) -> date:
@@ -88,6 +90,12 @@ class HealthService:
             return float(value)
         except Exception:
             return default
+
+    def _strip_internal_fields(self, item: dict) -> dict:
+        cleaned_item = dict(item or {})
+        cleaned_item.pop("_id", None)
+        cleaned_item.pop("user_id", None)
+        return cleaned_item
 
     def _average(self, values: list[float]) -> float:
         if not values:
