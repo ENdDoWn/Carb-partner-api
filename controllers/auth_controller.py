@@ -13,6 +13,13 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+class VerifyEmailRequest(BaseModel):
+    email: EmailStr
+    code: str
+
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
+
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
 async def signup(user: UserRegister, service: AuthService = Depends(get_auth_service)):
     try:
@@ -66,6 +73,36 @@ async def get_current_user(service: AuthService = Depends(get_auth_service)):
         return {"user": user}
     except HTTPException as e:
         raise e
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error"
+        )
+
+@router.post("/verify_email")
+async def verify_email(payload: VerifyEmailRequest, service: AuthService = Depends(get_auth_service)):
+    try:
+        return await service.verify_email(payload.email, payload.code)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error"
+        )
+
+@router.post("/resend_verification")
+async def resend_verification(payload: ResendVerificationRequest, service: AuthService = Depends(get_auth_service)):
+    try:
+        return await service.resend_verification_code(payload.email)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

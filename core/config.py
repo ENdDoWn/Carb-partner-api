@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     LINE_REDIRECT_URI: str
     GEMINI_API_KEY: str
     GEMINI_MODEL: str
+    SMTP_EMAIL: str
+    SMTP_PASSWORD: str
     model_config = SettingsConfigDict(env_file=".env")
 
 settings = Settings()
