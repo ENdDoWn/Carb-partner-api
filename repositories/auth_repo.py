@@ -20,6 +20,12 @@ class AuthRepository:
             user["_id"] = str(user["_id"])
         return user
 
+    async def find_by_username(self, username: str) -> dict:
+        user = await self.collection.find_one({"username": username})
+        if user:
+            user["_id"] = str(user["_id"])
+        return user
+
     async def find_by_id(self, user_id: str) -> dict:
         try:
             user = await self.collection.find_one({"_id": ObjectId(user_id)})
@@ -72,41 +78,3 @@ class AuthRepository:
         new_user["_id"] = str(result.inserted_id)
         return new_user
 
-    async def store_verification_code(self, user_id: str, code: str, expires_at: datetime) -> bool:
-        """Store verification code and expiry for a user"""
-        try:
-            result = await self.collection.update_one(
-                {"_id": ObjectId(user_id)},
-                {"$set": {"verification_code": code, "verification_code_expires_at": expires_at}}
-            )
-            return result.modified_count > 0
-        except Exception:
-            return False
-
-    async def verify_email(self, email: str, code: str) -> bool:
-        """Verify email with code and mark as verified"""
-        try:
-            from datetime import datetime, timezone
-            now = datetime.now(timezone.utc)
-            result = await self.collection.update_one(
-                {
-                    "email": email,
-                    "verification_code": code,
-                    "verification_code_expires_at": {"$gte": now}
-                },
-                {
-                    "$set": {"email_verified": True},
-                    "$unset": {"verification_code": "", "verification_code_expires_at": ""}
-                }
-            )
-            return result.modified_count > 0
-        except Exception:
-            return False
-
-    async def is_email_verified(self, email: str) -> bool:
-        """Check if email is verified"""
-        try:
-            user = await self.collection.find_one({"email": email})
-            return user and user.get("email_verified", False)
-        except Exception:
-            return False

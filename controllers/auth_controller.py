@@ -1,24 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from services.auth_services import AuthService, get_auth_service
 
 router = APIRouter()
 
 class UserRegister(BaseModel):
-    email: EmailStr
+    username: str
     password: str
     confirm_password: str
 
 class UserLogin(BaseModel):
-    email: EmailStr
+    username: str
     password: str
-
-class VerifyEmailRequest(BaseModel):
-    email: EmailStr
-    code: str
-
-class ResendVerificationRequest(BaseModel):
-    email: EmailStr
 
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
 async def signup(user: UserRegister, service: AuthService = Depends(get_auth_service)):
@@ -42,7 +35,7 @@ async def signin(login_data: UserLogin, service: AuthService = Depends(get_auth_
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect email or password",
+                detail="Incorrect username or password",
             )
         return {
             "access_token": user.get("access_token"),
@@ -84,32 +77,3 @@ async def get_current_user(service: AuthService = Depends(get_auth_service)):
             detail="Internal Server Error"
         )
 
-@router.post("/verify_email")
-async def verify_email(payload: VerifyEmailRequest, service: AuthService = Depends(get_auth_service)):
-    try:
-        return await service.verify_email(payload.email, payload.code)
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal Server Error"
-        )
-
-@router.post("/resend_verification")
-async def resend_verification(payload: ResendVerificationRequest, service: AuthService = Depends(get_auth_service)):
-    try:
-        return await service.resend_verification_code(payload.email)
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal Server Error"
-        )
