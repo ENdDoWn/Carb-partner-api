@@ -112,6 +112,14 @@ class UserService:
         chronic_conditions = self._normalize_chronic_conditions(payload.get("chronic_conditions"))
         if chronic_conditions is not None:
             payload["chronic_conditions"] = chronic_conditions
+        else:
+            payload["chronic_conditions"] = {
+                "diabetes": {"selected": False, "duration": None},
+                "hypertension": {"selected": False, "duration": None},
+                "hyperlipidemia": {"selected": False, "duration": None},
+                "other": {"selected": False, "diseases": []},
+                "none": True,
+            }
         try:
             height = float(payload.get("height"))
             weight = float(payload.get("weight"))
