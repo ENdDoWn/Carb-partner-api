@@ -7,6 +7,58 @@ class UserService:
     def __init__(self):
         self.repository = UserRepository()
 
+    def _normalize_chronic_conditions(self, raw_value) -> dict | None:
+        if not isinstance(raw_value, dict):
+            return None
+
+        def _as_bool(value) -> bool:
+            return bool(value) if isinstance(value, bool) else str(value).strip().lower() == "true"
+
+        def _as_int(value) -> int | None:
+            try:
+                return int(str(value).strip())
+            except Exception:
+                return None
+
+        def _normalize_condition(value) -> dict:
+            if not isinstance(value, dict):
+                return {"selected": False, "duration": None}
+            return {
+                "selected": _as_bool(value.get("selected")),
+                "duration": _as_int(value.get("duration")),
+            }
+
+        normalized = {
+            "diabetes": _normalize_condition(raw_value.get("diabetes")),
+            "hypertension": _normalize_condition(raw_value.get("hypertension")),
+            "hyperlipidemia": _normalize_condition(raw_value.get("hyperlipidemia")),
+            "none": _as_bool(raw_value.get("none")),
+        }
+
+        other_raw = raw_value.get("other")
+        if isinstance(other_raw, dict):
+            diseases_raw = other_raw.get("diseases")
+            diseases = []
+            if isinstance(diseases_raw, list):
+                for disease in diseases_raw:
+                    if not isinstance(disease, dict):
+                        continue
+                    name = str(disease.get("name") or "").strip()
+                    if not name:
+                        continue
+                    diseases.append({
+                        "name": name,
+                        "duration": _as_int(disease.get("duration")),
+                    })
+            normalized["other"] = {
+                "selected": _as_bool(other_raw.get("selected")),
+                "diseases": diseases,
+            }
+        else:
+            normalized["other"] = {"selected": False, "diseases": []}
+
+        return normalized
+
     def _calculate_carb_expect(self, sex: str, active: str, weight: float, height: float, age: int) -> float | None:
         try:
             sex_normalized = str(sex or "").strip().lower()
@@ -57,6 +109,9 @@ class UserService:
 
     async def add_additional_info(self, user_id: str, info_data: dict) -> dict:
         payload = dict(info_data or {})
+        chronic_conditions = self._normalize_chronic_conditions(payload.get("chronic_conditions"))
+        if chronic_conditions is not None:
+            payload["chronic_conditions"] = chronic_conditions
         try:
             height = float(payload.get("height"))
             weight = float(payload.get("weight"))
