@@ -69,10 +69,15 @@ class FoodService:
 
             Provide the result strictly in JSON format with ONLY the following field:
             - "carbs_estimate_g": Estimated total carbohydrate content in grams (number).
-            - "food_type": ชื่ออาหารเป็นภาษาไทยแบบสั้นและชัดเจน เช่น "ข้าว", "ขนมปัง", "ผลไม้", "ก๋วยเตี๋ยว" หากระบุไม่ได้ให้ใช้ "ไม่ทราบประเภทอาหาร".
+            - "food_type": ชื่อเมนูอาหารเป็นภาษาไทยแบบสั้นและชัดเจน เช่น "ข้าวผัด", "ผัดกะเพรา", "ข้าวมันไก่", "ก๋วยเตี๋ยวเรือ", "สลัดผัก", "แกงจืดเต้าหู้".
 
-            Do not include any other fields such as food name, confidence, or description. 
-            Do not include any markdown formatting (like ```json), explanations, units, or extra text. 
+            Important rules for "food_type":
+            - Use the specific dish name, not a generic category.
+            - Do NOT return generic words like "ข้าว", "ขนมปัง", "ผลไม้" unless the image truly shows only plain rice/bread/fruit.
+            - If you cannot confidently identify the dish, use "ไม่ทราบประเภทอาหาร".
+
+            Do not include any other fields such as food name, confidence, or description.
+            Do not include any markdown formatting (like ```json), explanations, units, or extra text.
             Return ONLY the raw, valid JSON object.
             """
             
