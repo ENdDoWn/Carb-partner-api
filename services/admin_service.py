@@ -84,6 +84,12 @@ class AdminService:
             "height": user.get("height"),
             "age": user.get("age"),
             "birth_date": user.get("birth_date"),
+            "sex": user.get("sex"),
+            "active": user.get("active"),
+            "bmi": user.get("bmi"),
+            "carb_expect": user.get("carb_expect"),
+            "chronic_conditions": user.get("chronic_conditions"),
+            "has_profile": user.get("has_profile"),
             "last_active": last_active,
         }
 
