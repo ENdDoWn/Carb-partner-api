@@ -1,4 +1,4 @@
-from controllers import auth_controller, user_controller, oauth_controller, health_controller, food_controller
+from controllers import auth_controller, user_controller, oauth_controller, health_controller, food_controller, admin_controller
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
@@ -43,6 +43,7 @@ app.include_router(oauth_controller.router, prefix="/api/v1", tags=["oauth"])
 app.include_router(user_controller.router, prefix="/api/v1", tags=["users"])
 app.include_router(health_controller.router, prefix="/api/v1", tags=["health"])
 app.include_router(food_controller.router, prefix="/api/v1", tags=["food"])
+app.include_router(admin_controller.router, prefix="/api/v1", tags=["admin"])
 
 @app.get("/health")
 async def health_check():
