@@ -27,6 +27,7 @@ class UserInfoRequest(BaseModel):
     height: float
     weight: float
     birth_date: str
+    chronic_conditions: Optional[dict] = None
 
 class UpdateProfileRequest(BaseModel):
     model_config = ConfigDict(extra="allow")
