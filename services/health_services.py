@@ -8,6 +8,9 @@ class HealthService:
         self.tz = ZoneInfo("Asia/Bangkok")
 
     async def add_sugars(self, info_data: dict, user_id: str):
+        already_logged = await self.health_repo.has_sugar_log_today(user_id)
+        if already_logged:
+            raise ValueError("คุณได้บันทึกระดับน้ำตาลในเลือดวันนี้แล้ว (จำกัด 1 ครั้งต่อวัน)")
         result = await self.health_repo.insert_sugar(info_data, user_id)
         if not result:
             raise ValueError("Failed to add sugar data")

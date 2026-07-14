@@ -1,6 +1,6 @@
 from database.mongodb import mongodb
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 class HealthRepository:
@@ -8,6 +8,18 @@ class HealthRepository:
         self.blood = mongodb.get_collection("blood-sugar-logs")
         self.carb = mongodb.get_collection("carb-logs")
         self.user_profile = mongodb.get_collection("user_profile")
+
+    async def has_sugar_log_today(self, user_id: str) -> bool:
+        """Check if the user already has a blood sugar log for today (Asia/Bangkok)."""
+        tz = ZoneInfo("Asia/Bangkok")
+        now_bkk = datetime.now(tz)
+        start_of_day = now_bkk.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_of_day = start_of_day + timedelta(days=1)
+        count = await self.blood.count_documents({
+            "user_id": user_id,
+            "created_at": {"$gte": start_of_day, "$lt": end_of_day},
+        })
+        return count > 0
 
     async def insert_sugar(self, sugar_data: dict, user_id: str) -> dict:
         sugar_data["created_at"] = datetime.now(ZoneInfo("Asia/Bangkok"))
